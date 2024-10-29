@@ -16,7 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.0
       - name: Paths Changes Filter
-        uses: dorny/paths-filter@v3.0.0
+        uses: dorny/paths-filter@v3.0.2
         id: changes
         with:
           list-files: json
