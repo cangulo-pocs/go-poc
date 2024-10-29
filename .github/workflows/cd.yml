@@ -1,0 +1,22 @@
+name: 🚀 continuous-delivery
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  list-changes:
+    name: 📜 list changes
+    uses: ./.github/workflows/shared-get-changes.yml
+
+  tfm-dev-apply:
+    name: 📃 Apply dev workspaces
+    if: ${{ needs.list-changes.outputs.conf_dev != '[]' }}
+    needs: list-changes
+    uses: ./.github/workflows/shared-tf-apply.yml
+    with:
+      workspaces: ${{ needs.list-changes.outputs.conf_dev }}
+      apply: true
+      enable-gh-environment: true
+    secrets: inherit

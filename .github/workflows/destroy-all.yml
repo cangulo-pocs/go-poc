@@ -1,0 +1,25 @@
+name: 🔥 Destroy All
+
+on:
+  workflow_dispatch:
+
+jobs:
+  tfm-destroy:
+    name: 📃 Destroy all workspaces
+    uses: ./.github/workflows/shared-tf-apply.yml
+    with:
+      workspaces: |
+        [
+          "dev/arepabank",
+          "tst/arepabank",
+          "acc/arepabank",
+          "prd/arepabank",
+          "dev/tacobank",
+          "tst/tacobank",
+          "acc/tacobank",
+          "prd/tacobank"
+        ]
+      apply: true
+      destroy-mode: true
+      enable-gh-environment: true
+    secrets: inherit

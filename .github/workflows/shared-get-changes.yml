@@ -1,0 +1,119 @@
+name: get changes
+
+on:
+  workflow_call:
+    outputs:
+      conf_dev:
+        value: ${{ jobs.get-changes.outputs.conf_dev }}
+      conf_tst:
+        value: ${{ jobs.get-changes.outputs.conf_tst }}
+      conf_acc:
+        value: ${{ jobs.get-changes.outputs.conf_acc }}
+      conf_prd:
+        value: ${{ jobs.get-changes.outputs.conf_prd }}
+
+jobs:
+  get-changes:
+    name: detect tf workspaces modified
+    runs-on: ubuntu-latest
+    outputs:
+      conf_dev: ${{ steps.get-dev-workspaces.outputs.workspaces }}
+      conf_tst: ${{ steps.get-tst-workspaces.outputs.workspaces }}
+      conf_acc: ${{ steps.get-acc-workspaces.outputs.workspaces }}
+      conf_prd: ${{ steps.get-prd-workspaces.outputs.workspaces }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.0
+      - name: Paths Changes Filter
+        uses: dorny/paths-filter@v3.0.0
+        id: changes
+        with:
+          list-files: json
+          filters: |
+            conf_dev:
+                - added|modified: 'configuration/dev/**'
+            conf_tst:
+                - added|modified: 'configuration/tst/**'
+            conf_acc:
+                - added|modified: 'configuration/acc/**'
+            conf_prd:
+                - added|modified: 'configuration/prd/**'
+            tfm:
+                - 'terraform/**'
+      - name: List dev workspaces
+        uses: actions/github-script@v7
+        id: get-dev-workspaces
+        env:
+          RETURN_ALL_WORKSPACES: ${{ steps.changes.outputs.tfm }}
+          FILES_MODIFIED: ${{ steps.changes.outputs.conf_dev_files }}
+          STAGE: dev
+        with:
+          script: |
+            const { getallWorkspaces, filterWorkspace } = require('./scripts/shared-get-changes-functions.js')
+            let workspaces  = []
+            const returnAll = process.env.RETURN_ALL_WORKSPACES == 'true' 
+            const stage     = process.env.STAGE
+
+            if (returnAll) {
+              workspaces = getallWorkspaces(stage)
+            }else{
+              const filesModified = JSON.parse(process.env.FILES_MODIFIED)
+              workspaces = filterWorkspace(filesModified, stage)
+            }
+
+            console.log(`workspaces:`, workspaces)
+            core.setOutput('workspaces', workspaces)
+
+      - name: List tst workspaces
+        uses: actions/github-script@v7
+        id: get-tst-workspaces
+        env:
+          RETURN_ALL_WORKSPACES: ${{ steps.changes.outputs.tfm }}
+          FILES_MODIFIED: ${{ steps.changes.outputs.conf_tst_files }}
+          STAGE: tst
+        with:
+          script: |
+            const { getallWorkspaces, filterWorkspace } = require('./scripts/shared-get-changes-functions.js')
+            let workspaces  = []
+            const returnAll = process.env.RETURN_ALL_WORKSPACES == 'true' 
+            const stage     = process.env.STAGE
+
+            if (returnAll) {
+              workspaces = getallWorkspaces(stage)
+            }else{
+              const filesModified = JSON.parse(process.env.FILES_MODIFIED)
+              workspaces = filterWorkspace(filesModified, stage)
+            }
+
+            console.log(`workspaces:`, workspaces)
+            core.setOutput('workspaces', workspaces)
+
+      - name: List acc workspaces
+        uses: actions/github-script@v7
+        id: get-acc-workspaces
+        env:
+          FILES_MODIFIED: ${{ steps.changes.outputs.conf_acc_files }}
+          STAGE: acc
+        with:
+          script: |
+            const { filterWorkspace } = require('./scripts/shared-get-changes-functions.js')
+            const filesModified       = JSON.parse(process.env.FILES_MODIFIED)
+            const workspaces          = filterWorkspace(filesModified, process.env.STAGE)
+
+            console.log(`workspaces:`, workspaces)
+            core.setOutput('workspaces', workspaces)
+
+      - name: List prd workspaces
+        uses: actions/github-script@v7
+        id: get-prd-workspaces
+        env:
+          FILES_MODIFIED: ${{ steps.changes.outputs.conf_prd_files }}
+          STAGE: prd
+        with:
+          script: |
+            const { filterWorkspace } = require('./scripts/shared-get-changes-functions.js')
+            const filesModified       = JSON.parse(process.env.FILES_MODIFIED)
+            const workspaces          = filterWorkspace(filesModified, process.env.STAGE)
+
+            console.log(`workspaces:`, workspaces)
+            core.setOutput('workspaces', workspaces)
