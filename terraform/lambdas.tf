@@ -1,8 +1,8 @@
 locals {
   lambdas = {
     payments = {
-      enabled          = try(var.payments.enabled, false)
-      function_name    = "${local.resources_prefix}-payments"
+      enabled          = true
+      function_name    = local.resources_prefix
       filename         = data.archive_file.lambda_zip_file.output_path
       source_code_hash = data.archive_file.lambda_zip_file.output_base64sha256
       handler          = "app.handler"
