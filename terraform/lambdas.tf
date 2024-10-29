@@ -1,6 +1,6 @@
 locals {
   lambdas = {
-    payments = {
+    main = {
       enabled          = true
       function_name    = local.resources_prefix
       filename         = data.archive_file.lambda_zip_file.output_path
